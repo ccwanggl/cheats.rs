@@ -380,7 +380,7 @@ Granting access to un-owned memory. Also see section on Generics & Constraints.
 | {{ tab() }} `s = *r;` | Make `s` a copy of whatever `r` references, if that is `Copy`. |
 | {{ tab() }} `s = *r;` | Won't work {{ bad() }} if `*r` is not `Copy`, as that would move and leave empty. |
 | {{ tab() }} `s = *my_box;` | Special case{{ link(url="https://web.archive.org/web/20230130111147/https://old.reddit.com/r/rust/comments/b4so6i/what_is_exactly/ej8xwg8/") }} for **`Box`**{{ std(page="std/boxed/index.html") }} that can move out b'ed content not `Copy`. |
-| `'a`  | A **lifetime parameter**, {{ book(page="ch10-00-generics.html") }} {{ ex(page="scope/lifetime.html")}} {{ nom(page="lifetimes.html") }} {{ ref(page="items/generics.html#type-and-lifetime-parameters")}} duration of a flow in static analysis. |
+| `'a`  | A **lifetime parameter**, {{ book(page="ch10-00-generics.html") }} {{ ex(page="scope/lifetime.html")}} {{ nom(page="lifetimes.html") }} {{ ref(page="items/generics.html#type-and-lifetime-parameters")}} duration of a flow in static analysis.<sup>1</sup> |
 | {{ tab() }}  `&'a S`  | Only accepts address of some `s`; address existing `'a` or longer. |
 | {{ tab() }}  `&'a mut S`  | Same, but allow address content to be changed. |
 | {{ tab() }}  `struct S<'a> {}`  | Signals this `S` will contain address with lt. `'a`. Creator of `S` decides `'a`. |
@@ -390,6 +390,11 @@ Granting access to un-owned memory. Also see section on Generics & Constraints.
 
 </fixed-2-column>
 
+<footnotes>
+
+<sup>1</sup>If this doesn't make sense yet, you can crudely think of a Rust 'lifetime' as 'some lines of code that, when printed on paper, you could mark with a single, continous stroke of a yellow highlighter on the left margin of the page'. <br>
+
+</footnotes>
 
 
 
@@ -607,7 +612,7 @@ Constructs found in `match` or `let` expressions, or function parameters.
 |  {{ tab() }} `let w @ t @ f = get();`  | Stores 3 copies of `get()` result in each `w`, `t`, `f`. {{ esoteric() }} |
 |  {{ tab() }} <code>let (&vert;x&vert; x) = get();</code> | Pathological or-pattern,{{ below(target="#pattern-matching")}} **not** closure.{{ bad() }} Same as `let x = get();` {{ esoteric() }}  |
 | `let Ok(x) = f();` | **Won't** work {{ bad() }} if p. can be **refuted**, {{ ref(page="expressions/if-expr.html#if-let-expressions") }} use `let else` or `if let` instead. |
-| `let Ok(x) = f();` | But it can work if type uninhabited, e.g., `f` returns `Result<T, !>` {{ edition(ed="1.82+") }} {{experimental() }}|
+| `let Ok(x) = f();` | But can work if alternatives uninhabited, e.g., `f` returns `Result<T, !>` {{ edition(ed="1.82+") }} |
 | `let Ok(x) = f() else {};`  | Try to assign {{ rfc(page="3137-let-else.html") }} if not `else {}` w. must `break`, `return`, `panic!`, … {{ edition(ed="1.65+")}} {{ hot() }} |
 | `if let Ok(x) = f() {}`  | Branch if pattern can be assigned (e.g., `enum` variant), syntactic sugar. <sup>*</sup>|
 | `while let Ok(x) = f() {}`  | Equiv.; here keep calling `f()`, run `{}` as long as _p._ can be assigned. |
@@ -6618,6 +6623,7 @@ Commands and tools that are good to know.
 | {{ tab() }} <code>cargo run --<span class="cargo-prefix">p</span>ackage w</code> | Run main of sub-worksp. `w`. Treats features more sanely. |
 | <code>cargo … --timings</code> | Show what crates caused your build to take so long. {{ hot() }} |
 | `cargo tree` | Show dependency graph. |
+| `cargo info …` | Show crate metadata (by default for version used by this project). |
 | <code>cargo +{nightly, stable} …</code>  | Use given toolchain for command, e.g., for 'nightly only' tools. |
 | `cargo +nightly …` | Some nightly-only commands (substitute `…` with command below) |
 | {{ tab() }} `rustc -- -Zunpretty=expanded` |  Show expanded macros. {{ experimental() }} |
@@ -6915,11 +6921,11 @@ Attributes primarily governing emitted code:
 
 | Linking | On | Explanation |
 |-------|---|-------------|
+| `#[unsafe(no_mangle)]` | `*` | Use item name directly as symbol name, instead of mangling.  {{ ref(page="abi.html#the-no_mangle-attribute") }}|
 | `#[unsafe(export_name = "foo")]` | `FS` | Export a `fn` or `static` under a different name. {{ ref(page="abi.html#the-export_name-attribute") }}|
 | `#[unsafe(link_section = ".x")]` | `FS`  | Section name of object file where item should be placed. {{ ref(page="abi.html#the-link_section-attribute") }}|
 | `#[link(name="x", kind="y")]` | `X`  | Native lib to link against when looking up symbol. {{ ref(page="items/external-blocks.html#the-link-attribute") }}|
 | `#[link_name = "foo"]` | `F`  | Name of symbol to search for resolving `extern fn`. {{ ref(page="items/external-blocks.html#the-link_name-attribute") }}|
-| `#[unsafe(no_mangle)]` | `*` | Use item name directly as symbol name, instead of mangling.  {{ ref(page="abi.html#the-no_mangle-attribute") }}|
 | `#[no_link]` | `X` | Don't link `extern crate` when only wanting macros. {{ ref(page="items/extern-crates.html#the-no_link-attribute") }}|
 | `#[used]` | `S`  | Don't optimize away `static` variable despite it looking unused. {{ ref(page="abi.html#the-used-attribute") }}|
 
